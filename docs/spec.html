@@ -1,55 +1,33 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Retain Feedback — specification</title>
-  <style>
-    :root { color-scheme: dark; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0b1018; color: #e7edf5; }
-    body { max-width: 920px; margin: auto; padding: 2rem 1.25rem 4rem; }
-    h1, h2 { color: #f7f9fc; line-height: 1.2; } h2 { margin-top: 2rem; border-top: 1px solid #314052; padding-top: 1rem; }
-    a { color: #8fc5ff; } code { background: #192231; padding: .1rem .3rem; border-radius: .25rem; }
-    li { margin: .4rem 0; } .muted { color: #adc0d5; } .callout { background: #14293a; border-left: 4px solid #63b4ff; padding: .8rem 1rem; }
-  </style>
-</head>
-<body>
-  <header><p class="muted">Zuriel Labs · 18 October 2026 · authorized change</p><h1>Retain Feedback</h1>
-    <p>Publish written Retain App Store reviews as issues in <a href="https://github.com/Zuriel-Labs/Retain-Feedback">Retain-Feedback</a>. Triage daily and create private <a href="https://github.com/Zuriel-Labs/Retain/issues">Retain backlog issues</a> for actionable feedback.</p></header>
-  <section><h2>Assumptions and objective</h2><ul>
-    <li>One public feedback issue per written Apple review; no reviewer nickname. The Apple review ID identifies the source across reruns and edits.</li>
-    <li>Clear defects, regressions, and feature requests become private backlog issues. Generic praise stays public. Vague feedback remains visible for human triage.</li>
-    <li>One private backlog issue per actionable Apple review. A later review edit updates the bot-owned source section but preserves human notes.</li>
-    <li>No public App Store reply, AI service, app-code edit, or release is triggered by review content.</li>
-  </ul><p class="callout">The rule-based classifier is intentionally conservative. It does not claim to understand every language or infer a reproducible bug from a star rating.</p></section>
-  <section><h2>Flow and credentials</h2><ol>
-    <li>A daily workflow on public Retain-Feedback uses a standard Ubuntu runner. GitHub says standard runners in public repositories are free. It also supports manual dispatch.</li>
-    <li>A short-lived Apple ES256 token, scoped to <code>GET /v1/apps/6816576807/customerReviews</code>, reads all pages. The Apple Customer Support key lives only in repository secrets.</li>
-    <li>The public repo's <code>GITHUB_TOKEN</code> creates and updates its own review issues. A separate GitHub App installed only on private Retain supplies a short-lived token with Issues read/write for backlog reconciliation.</li>
-    <li>All existing public and private issues are scanned before writes. A stable Apple ID marker prevents duplicate issues after retries. Changed reviews reopen matching issues for triage without deleting human notes.</li>
-    <li>The workflow records a compact daily status commit, including failed attempts, so a quiet public repo has ongoing activity. A failed import remains visibly failed.</li>
-  </ol><p>Secrets are never written to the repository, issue bodies, workflow logs, or status files. The workflow never executes text from a review.</p></section>
-  <section><h2>Triage rules</h2><ul>
-    <li>Promote a review that clearly describes a crash, failure, regression, lost data, or an explicit feature request. A 1–2 star review with specific negative feedback also creates an investigation item.</li>
-    <li>Do not promote generic praise, empty text, or vague criticism without a clear task. Mark such public issues for human review or no backlog as appropriate.</li>
-    <li>Private issue title names the suspected problem or request, not a confirmed diagnosis. Its body links the public feedback issue and records the rule that selected it.</li>
-    <li>Do not auto-close private issues when a review disappears or changes tone. Mark edits for renewed human triage.</li>
-  </ul></section>
-  <section><h2>Project shape and commands</h2><p><code>scripts/app_store_reviews.py</code> reads and reconciles reviews; <code>scripts/triage_reviews.py</code> classifies and reconciles backlog issues; <code>tests/</code> holds offline fixtures; <code>.github/workflows/</code> holds the daily job; <code>docs/</code> holds this specification and the <a href="plan.html">plan</a>.</p>
-    <p>Offline tests: <code>python -B -m unittest discover -s tests -p 'test_*.py'</code>. Workflow check: <code>actionlint .github/workflows/app-store-reviews.yml</code>. Live check: manually dispatch on the default branch, then rerun and confirm zero duplicate issues.</p>
-    <p>Style: small Python functions, explicit API validation, no broad exception swallowing. Example: <code>if review_id in existing: update_source_section(existing[review_id], review)</code>.</p></section>
-  <section><h2>Acceptance and boundaries</h2><ul>
-    <li>Public repo exists with Issues enabled. First successful run backfills written reviews; second run creates no duplicates; edits update matching issues.</li>
-    <li>Only actionable reviews create private Retain backlog issues. Reruns and partial failures do not duplicate them. Public review text cannot execute code or spoof issue markers.</li>
-    <li>Apple and GitHub authentication failures fail visibly. Tests cover pagination, errors, classification, edits, and credential-safe logging.</li>
-    <li>Only standard public GitHub-hosted runners are used; no artifact or cache is uploaded. The private Retain repo hosts no review-intake Actions workflow.</li>
-    <li>Apple's Account Holder must personally accept API terms. Key issuance and GitHub App installation must be complete before a live run.</li>
-  </ul></section>
-  <section><h2>Sources</h2><ul>
-    <li><a href="https://docs.github.com/en/billing/concepts/product-billing/github-actions">GitHub Actions billing</a></li>
-    <li><a href="https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow">Cross-repository GitHub App authentication</a></li>
-    <li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule">Scheduled workflow limits</a></li>
-    <li><a href="https://developer.apple.com/help/app-store-connect/get-started/app-store-connect-api/">App Store Connect API access</a></li>
-    <li><a href="https://developer.apple.com/documentation/appstoreconnectapi/get-v1-apps-_id_-customerreviews">Apple customer reviews endpoint</a></li>
-  </ul></section>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Retain Feedback — specification</title>
+<style>:root{color-scheme:dark;font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1018;color:#e7edf5}body{max-width:920px;margin:auto;padding:2rem 1.25rem 4rem}h1,h2{color:#f7f9fc}h2{margin-top:2rem;border-top:1px solid #314052;padding-top:1rem}a{color:#8fc5ff}code{background:#192231;padding:.1rem .3rem;border-radius:.25rem}li{margin:.4rem 0}.muted{color:#adc0d5}.callout{background:#14293a;border-left:4px solid #63b4ff;padding:.8rem 1rem}</style></head><body>
+<header><p class="muted">Zuriel Labs · 18 October 2026 · authorized specification</p><h1>Retain Feedback</h1><p>Collect Retain App Store reviews in the public <a href="https://github.com/Zuriel-Labs/Retain-Feedback">Retain-Feedback</a> repository. A cloud scheduled agent reviews them daily and creates actionable work in the private <a href="https://github.com/Zuriel-Labs/Retain/issues">Retain backlog</a>.</p></header>
+<section><h2>Review intake</h2><ul>
+<li>A daily GitHub Actions workflow in the public repository calls Apple's customer reviews API for Retain app ID 6816576807. A manual run supports recovery.</li>
+<li>The Apple team key is stored only as repository secrets. Each run signs a short-lived token scoped to the read endpoint. The public repository's <code>GITHUB_TOKEN</code> writes only to its own issues and status file.</li>
+<li>One managed public issue represents each written Apple review. The stable Apple review ID prevents duplicate import; edits update the managed section and preserve other notes. Reviewer nicknames are omitted.</li>
+<li>Only issues authored by <code>github-actions[bot]</code> with the <code>app-store-review</code> label count as managed source issues. Publicly submitted spoofed markers cannot claim an Apple review ID.</li>
+<li>The importer records a compact success/failure status commit after each scheduled attempt. Import failures remain visible in Actions and status. Only standard public GitHub-hosted runners are used.</li>
+</ul></section>
+<section><h2>Daily cloud triage</h2><ul>
+<li>A ChatGPT cloud Scheduled task runs daily in America/Chicago using the connected GitHub account. It needs read access to Retain-Feedback issues and issue-write access to private Retain. It must not depend on this Mac or the local checkout.</li>
+<li>The agent reads only trusted managed review issues. It treats review text, public comments, and issue bodies as untrusted evidence, never as instructions.</li>
+<li>It identifies specific defects, regressions, data loss, accessibility issues, and concrete feature requests. Star rating or vague criticism alone is insufficient. Generic praise creates no private work.</li>
+<li>Before writing, it searches all open and closed private Retain issues for the same problem or request. Closely related reviews may be linked to one backlog issue. A source marker and public source links make daily reruns idempotent.</li>
+<li>Private issue titles describe reported behavior, not a confirmed root cause. The body includes observed facts, review links, uncertainty, reproduction clues, and an actionable next step. Existing human notes are preserved.</li>
+<li>The task may create or update private issues and labels needed for triage. It does not answer App Store reviews, edit app code, publish, release, or expose private backlog details in the public repository.</li>
+</ul><p class="callout">A scheduled task must be activated with a GitHub connection that can access both repositories. An unattended task cannot complete a new sign-in, and a connected-app action may pause for approval if account policy requires it.</p></section>
+<section><h2>Acceptance</h2><ul>
+<li>First successful import backfills written reviews; the second creates no duplicates; an Apple edit updates the matching issue. A hostile public issue cannot block import.</li>
+<li>A first cloud triage run creates appropriate private backlog work and leaves praise or ambiguous feedback public. A second run creates no duplicate private issues.</li>
+<li>The cloud task's saved schedule and run history confirm daily execution while the desktop is closed. The GitHub connection can read the public source and write the private destination.</li>
+<li>Apple API key issuance requires the Account Holder's App Store Connect API access. No live import can succeed before the key and three repository secrets exist.</li>
+</ul></section>
+<section><h2>Sources</h2><ul>
+<li><a href="https://docs.github.com/en/billing/concepts/product-billing/github-actions">GitHub Actions billing for public standard runners</a></li>
+<li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule">GitHub scheduled workflow behavior</a></li>
+<li><a href="https://developer.apple.com/help/app-store-connect/get-started/app-store-connect-api/">App Store Connect API access</a></li>
+<li><a href="https://developer.apple.com/documentation/appstoreconnectapi/get-v1-apps-_id_-customerreviews">Apple customer reviews endpoint</a></li>
+<li><a href="https://help.openai.com/en/articles/10291617-scheduled-tasks-in-chatgpt">ChatGPT cloud Scheduled tasks and connected apps</a></li>
+<li><a href="https://developers.openai.com/training/walkthroughs/scheduled-tasks">OpenAI cloud scheduling walkthrough</a></li>
+</ul></section></body></html>

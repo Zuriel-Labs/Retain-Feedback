@@ -1,26 +1,23 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Retain Feedback — plan</title>
 <style>:root{color-scheme:dark;font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1018;color:#e7edf5}body{max-width:920px;margin:auto;padding:2rem 1.25rem 4rem}h1,h2{color:#f7f9fc}h2{margin-top:2rem;border-top:1px solid #314052;padding-top:1rem}a{color:#8fc5ff}code{background:#192231;padding:.1rem .3rem;border-radius:.25rem}li{margin:.4rem 0}.muted{color:#adc0d5}</style></head><body>
-<header><p class="muted">18 October 2026 · implementation plan</p><h1>Public intake, private backlog</h1><p>Implement the <a href="spec.html">authorized specification</a> in dependency order. <a href="tasks.html">Task checklist</a>.</p></header>
+<header><p class="muted">18 October 2026 · implementation plan</p><h1>Public intake, cloud agent triage</h1><p>Deliver the <a href="spec.html">specification</a> in dependency order. <a href="tasks.html">Task checklist</a>.</p></header>
 <section><h2>Architecture</h2><ol>
-<li>Reuse the tested Apple reader and public-issue reconciler from Retain PR #3 in the new public repository.</li>
-<li>Add a conservative classifier and private-issue reconciler. Source markers and bot-owned sections make retries and edits safe.</li>
-<li>Run both stages daily in one public-repository workflow. Limit its own token to public repository contents/issues. Mint a separate short-lived GitHub App token for Retain Issues only.</li>
-<li>Write a status commit after each attempt, even on failure. Observe the next scheduled run because GitHub may delay or skip schedules.</li>
-<li>Supersede Retain PR #3. Retain gets backlog labels and issues, not a scheduled review workflow.</li>
+<li>Run the Apple reader and public issue reconciler on a standard runner in Retain-Feedback. The workflow never writes to private Retain.</li>
+<li>Store the Apple review key only in public repository secrets. Keep the public workflow's GitHub token within that repository.</li>
+<li>Set up a daily cloud Scheduled task with the connected GitHub app. Its saved instructions, not a local checkout or desktop process, define triage behavior.</li>
+<li>The agent checks trusted public review issues, searches private Retain issues across open and closed states, and creates or updates concise backlog work for actionable feedback.</li>
+<li>Retire private Retain PR #3 because its private Actions workflow is superseded. Do not merge that workflow.</li>
 </ol></section>
 <section><h2>Order and checkpoints</h2><ol>
-<li>Create public repository and specify issue format, triage rules, secrets, failure behavior. Check: specification matches the user's requested topology.</li>
-<li>Port intake code and tests. Check: two-page fetch, no-op rerun, hostile public issue, edit, and partial failure fixtures pass.</li>
-<li>Add triage and private backlog reconciliation. Check: clear defect/request promoted, praise and vague text held, rerun no-op, edits preserve notes.</li>
-<li>Add public workflow and GitHub App permissions. Check: actionlint, no private runner, no untrusted PR event, scoped secrets and tokens.</li>
-<li>Configure live credentials, dispatch twice, inspect public and private results, then observe daily schedule. Apple API access remains an external prerequisite.</li>
+<li>Build public intake and offline tests. Check: pagination, retry, no-op rerun, edits, spoofed markers, and error handling.</li>
+<li>Add the daily/manual public workflow and verify YAML plus source. Check: least-privilege local token, pinned dependencies, no review-text execution, status on failure.</li>
+<li>Finish the cloud triage instructions and verify GitHub connector access to both repositories. Check: test a single agent run and repeat without duplicate backlog issues.</li>
+<li>Activate the cloud daily schedule in America/Chicago and inspect saved configuration. Check: the task runs independently of this Mac.</li>
+<li>Provide Apple App Store Connect API key details through secrets, manually dispatch intake twice, inspect issue results, then observe a scheduled import.</li>
 </ol></section>
-<section><h2>Risks and controls</h2><ul>
-<li>Public issue marker spoofing: only trust bot-authored issues carrying the managed label; escape raw review text.</li>
-<li>Cross-repository write access: GitHub App installed only on Retain with Issues read/write. Never place a personal broad GitHub token in public repo secrets.</li>
-<li>False promotion: conservative deterministic rules; private issues say “needs triage,” not “confirmed bug.”</li>
-<li>Quiet repository schedule shutoff: daily status commits provide meaningful activity; manual dispatch remains available. GitHub schedule delivery still needs monitoring.</li>
-<li>Failure mid-run: scan all issue states on every run; fail visibly and recover without duplicate issues.</li>
-</ul></section>
-</body></html>
+<section><h2>Known external dependencies</h2><ul>
+<li>Apple's Account Holder must enable App Store Connect API access and issue a Customer Support team key before live review collection.</li>
+<li>A ChatGPT cloud task must be created in an authenticated Scheduled surface; the local Codex automation API exposed to this chat schedules local execution only.</li>
+<li>The connected GitHub account must retain access to both repositories. A scheduled connected-app write can pause if account policy requires approval.</li>
+</ul></section></body></html>
