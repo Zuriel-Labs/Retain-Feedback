@@ -7,7 +7,7 @@
 <li>The Apple team key is stored only as repository secrets. Each run signs a short-lived token scoped to the read endpoint. The public repository's <code>GITHUB_TOKEN</code> writes only to its own issues and status file.</li>
 <li>One managed public issue represents each written Apple review. The stable Apple review ID prevents duplicate import; edits update the managed section and preserve other notes. Reviewer nicknames are omitted.</li>
 <li>Only issues authored by <code>github-actions[bot]</code> with the <code>app-store-review</code> label count as managed source issues. Publicly submitted spoofed markers cannot claim an Apple review ID.</li>
-<li>The importer records a compact success/failure status commit after each scheduled attempt. Import failures remain visible in Actions and status. Only standard public GitHub-hosted runners are used.</li>
+<li>The importer records a compact imported/blocked/failure status commit after each scheduled attempt. Missing Apple credentials are reported as blocked; actual import failures remain visible in Actions. Only standard public GitHub-hosted runners are used.</li>
 </ul></section>
 <section><h2>Daily cloud triage</h2><ul>
 <li>A ChatGPT cloud Scheduled task runs daily in America/Chicago using the connected GitHub account. It needs read access to Retain-Feedback issues and issue-write access to private Retain. It must not depend on this Mac or the local checkout.</li>
