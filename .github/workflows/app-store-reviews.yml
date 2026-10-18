@@ -2,7 +2,7 @@ name: App Store review intake
 
 on:
   schedule:
-    - cron: '17 15 * * *'
+    - cron: '17 13 * * *'
   workflow_dispatch:
 
 permissions:
