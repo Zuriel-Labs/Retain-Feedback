@@ -253,6 +253,10 @@ class CommandTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "GitHub repository"):
             main([], environ={"GITHUB_REPOSITORY": "someone/else"}, request=lambda *args, **kwargs: self.fail("network called"))
 
+    def test_missing_credentials_fail_before_network_access(self):
+        with self.assertRaisesRegex(ValueError, "Missing environment values"):
+            main(["--apply"], environ={"GITHUB_REPOSITORY": "Zuriel-Labs/Retain-Feedback"}, request=lambda *args, **kwargs: self.fail("network called"))
+
     def test_dry_run_does_not_write_and_apply_creates_issue(self):
         key = ec.generate_private_key(ec.SECP256R1())
         pem = key.private_bytes(
@@ -277,10 +281,13 @@ class CommandTests(unittest.TestCase):
             writes.append((method, url, payload))
             return {"number": 1}
 
-        with patch("builtins.print"):
+        with patch("builtins.print") as output:
             self.assertEqual(main([], environ=env, request=fake_request), 0)
             self.assertEqual(writes, [])
+            output.assert_called_once_with("Would create 1 issues; would update 0 issues")
+            output.reset_mock()
             self.assertEqual(main(["--apply"], environ=env, request=fake_request), 0)
+            output.assert_not_called()
         self.assertEqual(len(writes), 1)
         self.assertEqual(writes[0][0], "POST")
         self.assertIn("App-Store-Review-ID: review-1", writes[0][2]["body"])

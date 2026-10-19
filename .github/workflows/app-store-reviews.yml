@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   issues: write
 
 concurrency:
@@ -24,7 +24,6 @@ jobs:
       - name: Install token signer
         run: python -m pip install --disable-pip-version-check -r scripts/requirements.txt
       - name: Import reviews
-        id: import
         env:
           ASC_KEY_ID: ${{ secrets.ASC_REVIEW_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_REVIEW_ISSUER_ID }}
@@ -32,36 +31,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          if [[ -z "$ASC_KEY_ID" || -z "$ASC_ISSUER_ID" || -z "$ASC_PRIVATE_KEY" ]]; then
-            echo 'result=blocked' >> "$GITHUB_OUTPUT"
-            echo '::warning::Apple App Store Connect review credentials are not configured; import skipped'
-            exit 0
-          fi
           python scripts/app_store_reviews.py --apply
-          echo 'result=imported' >> "$GITHUB_OUTPUT"
-      - name: Record daily intake status
-        if: always() && github.ref == 'refs/heads/main'
-        env:
-          IMPORT_OUTCOME: ${{ steps.import.outcome }}
-          IMPORT_RESULT: ${{ steps.import.outputs.result }}
-        run: |
-          mkdir -p status
-          python - <<'PY'
-          import json
-          import os
-          from datetime import datetime, timezone
-          from pathlib import Path
-
-          Path('status/latest.json').write_text(json.dumps({
-              'checkedAt': datetime.now(timezone.utc).isoformat(),
-              'outcome': (os.environ['IMPORT_RESULT']
-                          if os.environ['IMPORT_OUTCOME'] == 'success'
-                          else os.environ['IMPORT_OUTCOME']),
-              'runUrl': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
-          }, indent=2) + '\n')
-          PY
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add status/latest.json
-          git commit -m 'Record review intake status'
-          git push origin HEAD:main

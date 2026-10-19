@@ -4,10 +4,10 @@
 <header><p class="muted">Zuriel Labs · 18 October 2026 · authorized specification</p><h1>Retain Feedback</h1><p>Collect Retain App Store reviews in the public <a href="https://github.com/Zuriel-Labs/Retain-Feedback">Retain-Feedback</a> repository. A cloud scheduled agent reviews them daily and creates actionable work in the private <a href="https://github.com/Zuriel-Labs/Retain/issues">Retain backlog</a>.</p></header>
 <section><h2>Review intake</h2><ul>
 <li>A daily GitHub Actions workflow in the public repository calls Apple's customer reviews API for Retain app ID 6816576807. A manual run supports recovery.</li>
-<li>The Apple team key is stored only as repository secrets. Each run signs a short-lived token scoped to the read endpoint. The public repository's <code>GITHUB_TOKEN</code> writes only to its own issues and status file.</li>
+<li>The Apple team key is stored only as repository secrets. Each run signs a short-lived token scoped to the read endpoint. The public repository's <code>GITHUB_TOKEN</code> can write only to its own issues.</li>
 <li>One managed public issue represents each written Apple review. The stable Apple review ID prevents duplicate import; edits update the managed section and preserve other notes. Reviewer nicknames are omitted.</li>
 <li>Only issues authored by <code>github-actions[bot]</code> with the <code>app-store-review</code> label count as managed source issues. Publicly submitted spoofed markers cannot claim an Apple review ID.</li>
-<li>The importer records a compact imported/blocked/failure status commit after each scheduled attempt. Missing Apple credentials are reported as blocked; actual import failures remain visible in Actions. Only standard public GitHub-hosted runners are used.</li>
+<li>Successful imports, including empty runs, make no status commit or routine report. Missing credentials and import errors fail the workflow visibly in Actions. Only standard public GitHub-hosted runners are used.</li>
 </ul></section>
 <section><h2>Daily cloud triage</h2><ul>
 <li>A ChatGPT cloud Scheduled task runs daily in America/Chicago using the connected GitHub account. It needs read access to Retain-Feedback issues and issue-write access to private Retain. It must not depend on this Mac or the local checkout.</li>
@@ -16,6 +16,7 @@
 <li>Before writing, it searches all open and closed private Retain issues for the same problem or request. Closely related reviews may be linked to one backlog issue. A source marker and public source links make daily reruns idempotent.</li>
 <li>Private issue titles describe reported behavior, not a confirmed root cause. The body includes observed facts, review links, uncertainty, reproduction clues, and an actionable next step. Existing human notes are preserved.</li>
 <li>The task may create or update private issues and labels needed for triage. It does not answer App Store reviews, edit app code, publish, release, or expose private backlog details in the public repository.</li>
+<li>The cloud task stops before reading the private backlog when no new or updated public review exists. Successful triage runs are silent; it reports only access or triage errors. Import errors fail the GitHub Actions workflow.</li>
 </ul><p class="callout">A scheduled task must be activated with a GitHub connection that can access both repositories. An unattended task cannot complete a new sign-in, and a connected-app action may pause for approval if account policy requires it.</p></section>
 <section><h2>Acceptance</h2><ul>
 <li>First successful import backfills written reviews; the second creates no duplicates; an Apple edit updates the matching issue. A hostile public issue cannot block import.</li>

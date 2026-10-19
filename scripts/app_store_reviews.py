@@ -263,8 +263,8 @@ def main(argv=None, environ=None, request=request_json):
         create = lambda payload: None
         update = lambda number, payload: None
     created, updated = run_import(apple_fetch, github_fetch, create, update)
-    verb = "Created" if args.apply else "Would create"
-    print(f"{verb} {created} issues; {'updated' if args.apply else 'would update'} {updated} issues")
+    if not args.apply:
+        print(f"Would create {created} issues; would update {updated} issues")
     return 0
 
 
